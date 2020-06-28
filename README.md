@@ -154,7 +154,7 @@ onMessage则是根据不同的json消息中的msgid字段，来在业务层调�
 
 连接池的设计如下图所示：
 
-![](https://github.com/FreeezingHeart/chatserver/md_picture/MySQL连接池.png)
+![](md_picture/MySQL连接池.png)
 
 **初始化方法**
 
