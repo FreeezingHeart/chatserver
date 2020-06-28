@@ -9,14 +9,14 @@ bool GroupModel::createGroup(Group &group)
     sprintf(sql, "insert into allgroup(groupname, groupdesc) values('%s', '%s')",
             group.getName().c_str(), group.getDesc().c_str());
 
-    MySQL mysql;
-    if (mysql.connect())
+    // 初始化连接池
+    ConnectionPool *cp = ConnectionPool::getConnectionPool();
+    // 获取连接
+    shared_ptr<MySQL> dbConn = cp->getConnection();
+    if(dbConn->update(sql))
     {
-        if (mysql.update(sql))
-        {
-            group.setId(mysql_insert_id(mysql.getConnection()));
-            return true;
-        }
+        group.setId(mysql_insert_id(dbConn->getConnection()));
+        return true;
     }
     return false;
 }
@@ -28,12 +28,11 @@ void GroupModel::addGroup(int userid, int groupid, string role)
     char sql[1024] = {0};
     sprintf(sql, "insert into groupuser values(%d, %d, '%s')",
             groupid, userid, role.c_str());
-
-    MySQL mysql;
-    if (mysql.connect())
-    {
-        mysql.update(sql);
-    }
+    // 初始化连接池
+    ConnectionPool *cp = ConnectionPool::getConnectionPool();
+    // 获取连接
+    shared_ptr<MySQL> dbConn = cp->getConnection();
+    dbConn->update(sql);
 }
 
 // 查询用户所在群组信息
@@ -44,24 +43,24 @@ vector<Group> GroupModel::queryGroups(int userid)
     sprintf(sql, "select a.id,a.groupname,a.groupdesc from allgroup a inner join \
                   groupuser b on a.id == b.groupid where b.userid = %d", userid);
     vector<Group> groupVec;
-    MySQL mysql;
-    if (mysql.connect())
+    // 初始化连接池
+    ConnectionPool *cp = ConnectionPool::getConnectionPool();
+    // 获取连接
+    shared_ptr<MySQL> dbConn = cp->getConnection();
+    MYSQL_RES *res = dbConn->query(sql);
+    if (res != nullptr)
     {
-        MYSQL_RES *res = mysql.query(sql);
-        if (res != nullptr)
+        MYSQL_ROW row;
+        // 查出userid所有的群组信息
+        while ((row = mysql_fetch_row(res)) != nullptr)
         {
-            MYSQL_ROW row;
-            // 查出userid所有的群组信息
-            while ((row = mysql_fetch_row(res)) != nullptr)
-            {
-                Group group;
-                group.setId(atoi(row[0]));
-                group.setName(row[1]);
-                group.setDesc(row[2]);
-                groupVec.push_back(group);
-            }
-            mysql_free_result(res);
+            Group group;
+            group.setId(atoi(row[0]));
+            group.setName(row[1]);
+            group.setDesc(row[2]);
+            groupVec.push_back(group);
         }
+        mysql_free_result(res);
     }
 
     // 查询群组的用户信息
@@ -71,7 +70,7 @@ vector<Group> GroupModel::queryGroups(int userid)
             inner join groupuser b on b.userid = a.id where b.groupid=%d",
                 group.getId());
 
-        MYSQL_RES *res = mysql.query(sql);
+        MYSQL_RES *res = dbConn->query(sql);
         if (res != nullptr)
         {
             MYSQL_ROW row;
@@ -99,10 +98,11 @@ vector<int> GroupModel::queryGroupUsers(int userid, int groupid)
     sprintf(sql, "select userid from groupuser where userid != %d and groupid = %d",
             userid, groupid);
     vector<int> vec;
-    MySQL mysql;
-    if (mysql.connect())
-    {
-        MYSQL_RES *res = mysql.query(sql);
+    // 初始化连接池
+    ConnectionPool *cp = ConnectionPool::getConnectionPool();
+    // 获取连接
+    shared_ptr<MySQL> dbConn = cp->getConnection();
+    MYSQL_RES *res = dbConn->query(sql);
         if(res != nullptr)
         {
             MYSQL_ROW row;
@@ -112,6 +112,5 @@ vector<int> GroupModel::queryGroupUsers(int userid, int groupid)
             }
             mysql_free_result(res);
         }
-    }
     return vec;
 }

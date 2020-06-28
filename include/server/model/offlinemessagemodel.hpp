@@ -3,6 +3,7 @@
 
 #include <string>
 #include <vector>
+#include "connectionPool.hpp"
 using namespace std;
 
 class OfflineMsgModel{

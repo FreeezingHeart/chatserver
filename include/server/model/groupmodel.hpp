@@ -2,6 +2,7 @@
 #define GROUPMODEL_H
 
 #include "group.hpp"
+#include "connectionPool.hpp"
 #include <string>
 #include <vector>
 using namespace std;

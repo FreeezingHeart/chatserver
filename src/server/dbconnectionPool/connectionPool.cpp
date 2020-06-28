@@ -145,6 +145,7 @@ void ConnectionPool::freeIdleConnectionTask()
         unique_lock<mutex> lock(_queueMutex);
         while(_connectionCnt > _initSize)
         {
+            if(_connectionQue.empty()) break;
             MySQL *p = _connectionQue.front();
             if(p->getAliveTime() > _maxIdleTime*1000)
             {

@@ -3,6 +3,7 @@
 
 #include "user.hpp"
 #include "db.h"
+#include "connectionPool.hpp"
 #include <iostream>
 using namespace std;
 
